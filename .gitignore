@@ -1,3 +1,4 @@
 .vagrant
 node_modules
 config.js
+export_config.sh

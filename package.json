@@ -1,0 +1,23 @@
+{
+  "name": "saras-puppies",
+  "version": "0.1.0",
+  "description": "Sara's Puppies Twitter Bot",
+  "main": "saraspuppies.js",
+  "dependencies": {
+    "google-images": "~0.1.0",
+    "twit": "~1.1.19"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/morinap/saraspuppies.git"
+  },
+  "author": "Andrew Morin",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/morinap/saraspuppies/issues"
+  }
+}

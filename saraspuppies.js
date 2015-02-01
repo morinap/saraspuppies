@@ -93,7 +93,7 @@ SarasPuppies.prototype = {
 
 // Become sentient
 new SarasPuppies({
-	config: './config.js',
+	config: './config-env.js',
 	screenname: "saraspuppies"
 }).skynet();
 
