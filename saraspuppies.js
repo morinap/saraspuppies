@@ -34,7 +34,8 @@ SarasPuppies.prototype = {
 	skynet: function() {
 		// Timeline stream
 		var self = this;
-		var stream = this.twitter.stream("user", { with: "followings" })
+		var stream = this.twitter.stream("user", { with: "followings" });
+		console.log("Starting Stream with screename " + this.screnname);
 		stream.on("tweet", function(tweet) {
 			// Match
 			var matches = self.REGEX.exec(tweet.text);
