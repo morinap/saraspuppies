@@ -9,6 +9,7 @@ TODO:
 // Load some requires
 var Twit = require('twit');							// Twitter Client
 var GoogleImages = require("google-images");		// Google Image Search
+var _ = require("underscore");						// Underscore JS
 
 
 // Define our bot class
@@ -78,7 +79,18 @@ SarasPuppies.prototype = {
 	tweetImage: function(image, searchTerm, respondTo) {
 		// Build status text
 		console.log("Replying to tweet " + respondTo.id + " from user " + respondTo.user.screen_name + " with URL " + image.url);
-		var statusText = "@" + respondTo.user.screen_name + " " + searchTerm.toUpperCase() + "! " + image.url;
+
+		// Screen names to tweet at
+		var screennames = [respondTo.user.screen_name];
+		if (respondTo.entities && respondTo.entities.user_mentions) {
+			screennames = _.union(screennames, _.map(respondTo.entities.user_mentions, function(mention) { return mention.screen_name; }));
+		}
+		console.log("Including screennames " + screennames.join(", ") + " in tweet");
+
+		var statusText = "@" + screennames.join(" @");
+		statusText += " " + searchTerm.toUpperCase() + "! " + image.url;
+
+		console.log("Tweet text: " + statusText);
 
 		this.twitter.post('statuses/update', {
 			in_reply_to_status_id: respondTo.id_str,
