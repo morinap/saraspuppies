@@ -16,7 +16,6 @@ var _ = require("underscore");						// Underscore JS
 function SarasPuppies(options) {
 	// Init twitter client
 	this.twitter = new Twit(require(options.config));
-	this.screenname = options.screenname;
 };
 SarasPuppies.prototype = {
 	// The regular expression for tweets to find
@@ -33,10 +32,28 @@ SarasPuppies.prototype = {
 	 * Do the bot work
 	 */
 	skynet: function() {
+		// Verify our credentials
+		var self = this;
+		this.twitter.get("account/verify_credentials", {}, function(err, data, response) {
+			if (err) {
+				console.log("Error: Unable to verify credentials", err);
+			}
+			else {
+				self.screenname = data.screen_name;
+				console.log("Successfully authenticated as " + self.screenname);
+				self.startListening();
+			}
+		});
+	},
+
+	/**
+	 * Listen on the streaming API
+	 */
+	startListening: function() {
 		// Timeline stream
 		var self = this;
 		var stream = this.twitter.stream("user", { with: "followings" });
-		console.log("Starting Stream with screename " + this.screenname);
+		console.log("Starting user stream");
 		stream.on("tweet", function(tweet) {
 			// Match
 			var matches = self.REGEX.exec(tweet.text);
@@ -106,7 +123,6 @@ SarasPuppies.prototype = {
 
 // Become sentient
 new SarasPuppies({
-	config: './config-env.js',
-	screenname: "saraspuppies"
+	config: './config-env.js'
 }).skynet();
 
