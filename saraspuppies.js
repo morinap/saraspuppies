@@ -100,7 +100,7 @@ SarasPuppies.prototype = {
 		// Screen names to tweet at
 		var screennames = [respondTo.user.screen_name];
 		if (respondTo.entities && respondTo.entities.user_mentions) {
-			screennames = _.union(screennames, _.map(respondTo.entities.user_mentions, function(mention) { return mention.screen_name; }));
+			screennames = _.without(_.union(screennames, _.map(respondTo.entities.user_mentions, function(mention) { return mention.screen_name; })), this.screenname);
 		}
 		console.log("Including screennames " + screennames.join(", ") + " in tweet");
 
