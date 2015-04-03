@@ -9,6 +9,7 @@ TODO:
 // Load some requires
 var Twit = require('twit');							// Twitter Client
 var GoogleImages = require("google-images");		// Google Image Search
+var FS = require('fs');								// File System Client
 var _ = require("underscore");						// Underscore JS
 
 
@@ -54,6 +55,7 @@ SarasPuppies.prototype = {
 		var self = this;
 		var stream = this.twitter.stream("user", { with: "followings" });
 		console.log("Starting user stream");
+
 		stream.on("tweet", function(tweet) {
 			// Match
 			var matches = self.REGEX.exec(tweet.text);
@@ -82,7 +84,15 @@ SarasPuppies.prototype = {
 				// Pull off a random image and handle that
 				if (images.length > 0) {
 					var index = self.rand(0, images.length);
-					self.tweetImage(images[index], searchTerm, respondTo);
+					var image = images[index];
+
+					// Write image to a path
+					console.log("Downloading image from URL " + image.url);
+					var img_path = "/tmp/image." + (new Date()).getTime();
+					image.writeTo(img_path, function() {
+						console.log("Wrote image to " + img_path);
+						self.tweetImage(img_path, searchTerm, respondTo);
+					});
 				} else {
 					console.log("No images found");
 				}
@@ -93,9 +103,11 @@ SarasPuppies.prototype = {
 	/**
 	 * Tweet a pug image
 	 */
-	tweetImage: function(image, searchTerm, respondTo) {
+	tweetImage: function(imagePath, searchTerm, respondTo) {
+		var self = this;
+
 		// Build status text
-		console.log("Replying to tweet " + respondTo.id + " from user " + respondTo.user.screen_name + " with URL " + image.url);
+		console.log("Replying to tweet " + respondTo.id + " from user " + respondTo.user.screen_name);
 
 		// Screen names to tweet at
 		var screennames = [respondTo.user.screen_name];
@@ -105,18 +117,44 @@ SarasPuppies.prototype = {
 		console.log("Including screennames " + screennames.join(", ") + " in tweet");
 
 		var statusText = "@" + screennames.join(" @");
-		statusText += " " + searchTerm.toUpperCase() + "! " + image.url;
+		statusText += " " + searchTerm.toUpperCase() + "!";
 
 		console.log("Tweet text: " + statusText);
 
-		this.twitter.post('statuses/update', {
-			in_reply_to_status_id: respondTo.id_str,
-			status: statusText
-		}, function(err, reply) {
+		// Upload content
+		console.log("Uploading image");
+		var b64content = FS.readFileSync(imagePath, { encoding: 'base64' });
+		self.twitter.post('media/upload', {
+			media: b64content
+		}, function (err, data, response) {
 			if (err) {
-				console.log("Error posting tweet:", err);
+				console.log("Error uploading media:", err);
+			}
+			else {
+				var mediaIdStr = data.media_id_string;
+				self.twitter.post('statuses/update', {
+					in_reply_to_status_id: respondTo.id_str,
+					status: statusText,
+					media_ids: [mediaIdStr]
+				}, function(err, data) {
+					if (err) {
+						console.log("Error posting tweet:", err);
+					}
+					else {
+						console.log("Tweet posted with ID " + data.id_str);
+						FS.unlink(imagePath, function(err) {
+							if (err) {
+								console.log("Error cleaning up image file " + imagePath);
+							}
+							else {
+								console.log("Deleted image file " + imagePath);
+							}
+						});
+					}
+				});
 			}
 		});
+
 	}
 };
 
