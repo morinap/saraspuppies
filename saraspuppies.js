@@ -10,13 +10,20 @@ TODO:
 var Twit = require('twit');							// Twitter Client
 var GoogleImages = require("google-images");		// Google Image Search
 var FS = require('fs');								// File System Client
+var HTTP = require('http');							// HTTP Client
 var _ = require("underscore");						// Underscore JS
 
 
 // Define our bot class
 function SarasPuppies(options) {
+	// Config
+	var config = require(options.config);
+
 	// Init twitter client
-	this.twitter = new Twit(require(options.config));
+	this.twitter = new Twit(config.twitter);
+
+	// Init google images client
+	this.googleImages = GoogleImages(config.google.cse_id, config.google.api_key);
 };
 SarasPuppies.prototype = {
 	// The regular expression for tweets to find
@@ -78,24 +85,29 @@ SarasPuppies.prototype = {
 		var page_num = this.rand(0, 50);
 		console.log("Searching Google Images for " + searchTerm + " at page " + page_num);
 
-		GoogleImages.search(searchTerm, {
+		this.googleImages.search(searchTerm, {
 			page: page_num,
-			callback: function(err, images) {
-				// Pull off a random image and handle that
-				if (images.length > 0) {
-					var index = self.rand(0, images.length);
-					var image = images[index];
+		}).then(function(images) {
+			// Pull off a random image and handle that
+			if (images.length > 0) {
+				var index = self.rand(0, images.length);
+				var image = images[index];
 
-					// Write image to a path
-					console.log("Downloading image from URL " + image.url);
-					var img_path = "/tmp/image." + (new Date()).getTime();
-					image.writeTo(img_path, function() {
-						console.log("Wrote image to " + img_path);
-						self.tweetImage(img_path, searchTerm, respondTo);
+				// Write image to a path
+				console.log("Downloading image from URL " + image.url);
+				var img_path = "/tmp/image." + (new Date()).getTime();
+				var file = FS.createWriteStream(img_path);
+				var request = HTTP.get(image.url, function(response) {
+					response.pipe(file);
+					file.on('finish', function() {
+						file.close(function() {
+							console.log("Wrote image to " + img_path);
+							self.tweetImage(img_path, searchTerm, respondTo);
+						});
 					});
-				} else {
-					console.log("No images found");
-				}
+				});
+			} else {
+				console.log("No images found");
 			}
 		});
 	},

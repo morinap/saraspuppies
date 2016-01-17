@@ -4,13 +4,14 @@
   "description": "Sara's Puppies Twitter Bot",
   "main": "saraspuppies.js",
   "dependencies": {
-    "google-images": "~0.1.0",
+    "google-images": "~1.0.0",
     "twit": "~1.1.20",
     "underscore": "~1.7.0"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node saraspuppies.js"
   },
   "repository": {
     "type": "git",
