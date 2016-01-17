@@ -3,3 +3,5 @@ node_modules
 config.js
 export_config.sh
 docker_run_config.sh
+*.sublime-project
+*.sublime-workspace
