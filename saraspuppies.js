@@ -105,6 +105,8 @@ SarasPuppies.prototype = {
 							self.tweetImage(img_path, searchTerm, respondTo);
 						});
 					});
+				}).on("error", function(err) {
+					console.log("Error downloading image: ", err);
 				});
 			} else {
 				console.log("No images found");
